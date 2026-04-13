@@ -1,0 +1,198 @@
+### Task Manager REST API
+### Use with VS Code REST Client extension or JetBrains HTTP Client
+### Install: https://marketplace.visualstudio.com/items?itemName=humao.rest-client
+
+@baseUrl = http://localhost:3000
+@contentType = application/json
+
+### ─── Health ────────────────────────────────────────────────────────────────
+
+### Health Check
+GET {{baseUrl}}/health
+
+
+### ─── CREATE TASK ───────────────────────────────────────────────────────────
+
+### Create a task (all fields)
+POST {{baseUrl}}/api/tasks
+Content-Type: {{contentType}}
+
+{
+  "title": "Fix login bug",
+  "description": "Users cannot log in with Google OAuth on mobile devices",
+  "status": "todo",
+  "priority": "high",
+  "dueDate": "2027-12-31",
+  "tags": ["backend", "auth", "bug"]
+}
+
+###
+
+### Create a minimal task (title only)
+POST {{baseUrl}}/api/tasks
+Content-Type: {{contentType}}
+
+{
+  "title": "Write unit tests"
+}
+
+###
+
+### Create task — validation error (title too short)
+POST {{baseUrl}}/api/tasks
+Content-Type: {{contentType}}
+
+{
+  "title": "ab",
+  "priority": "ultra"
+}
+
+###
+
+### Create task — validation error (past dueDate)
+POST {{baseUrl}}/api/tasks
+Content-Type: {{contentType}}
+
+{
+  "title": "Overdue task example",
+  "dueDate": "2020-01-01"
+}
+
+
+### ─── LIST TASKS ─────────────────────────────────────────────────────────────
+
+### Get all tasks (default pagination)
+GET {{baseUrl}}/api/tasks
+
+###
+
+### Filter by status
+GET {{baseUrl}}/api/tasks?status=todo
+
+###
+
+### Filter by priority
+GET {{baseUrl}}/api/tasks?priority=high
+
+###
+
+### Filter by status AND priority
+GET {{baseUrl}}/api/tasks?status=in-progress&priority=medium
+
+###
+
+### Filter by tag
+GET {{baseUrl}}/api/tasks?tags=backend
+
+###
+
+### Filter by multiple tags (comma-separated)
+GET {{baseUrl}}/api/tasks?tags=backend,auth
+
+###
+
+### Filter tasks due before a date
+GET {{baseUrl}}/api/tasks?dueBefore=2027-06-01
+
+###
+
+### Sort by dueDate ascending
+GET {{baseUrl}}/api/tasks?sortBy=dueDate&order=asc
+
+###
+
+### Sort by createdAt descending
+GET {{baseUrl}}/api/tasks?sortBy=createdAt&order=desc
+
+###
+
+### Pagination — page 2, 5 items per page
+GET {{baseUrl}}/api/tasks?page=2&limit=5
+
+###
+
+### Combined — filter + sort + pagination
+GET {{baseUrl}}/api/tasks?status=todo&priority=high&sortBy=dueDate&order=asc&page=1&limit=10
+
+
+### ─── STATS ───────────────────────────────────────────────────────────────────
+
+### Get aggregate stats
+### NOTE: /stats must come before /:id in routes — this would fail if routes were reversed
+GET {{baseUrl}}/api/tasks/stats
+
+
+### ─── GET SINGLE TASK ────────────────────────────────────────────────────────
+
+### Get task by ID — replace with a real ID from a previous response
+@taskId = REPLACE_WITH_REAL_TASK_ID
+
+### Get task by ID
+GET {{baseUrl}}/api/tasks/{{taskId}}
+
+###
+
+### Get task — invalid ObjectId format (expect 400)
+GET {{baseUrl}}/api/tasks/not-a-valid-id
+
+###
+
+### Get task — valid ObjectId that doesn't exist (expect 404)
+GET {{baseUrl}}/api/tasks/000000000000000000000000
+
+
+### ─── UPDATE TASK ─────────────────────────────────────────────────────────────
+
+### Update status only
+PATCH {{baseUrl}}/api/tasks/{{taskId}}
+Content-Type: {{contentType}}
+
+{
+  "status": "in-progress"
+}
+
+###
+
+### Update multiple fields
+PATCH {{baseUrl}}/api/tasks/{{taskId}}
+Content-Type: {{contentType}}
+
+{
+  "priority": "medium",
+  "tags": ["backend", "refactor"],
+  "dueDate": "2027-11-30"
+}
+
+###
+
+### Update — validation error (empty body, expect 400)
+PATCH {{baseUrl}}/api/tasks/{{taskId}}
+Content-Type: {{contentType}}
+
+{}
+
+###
+
+### Update — invalid status value (expect 400)
+PATCH {{baseUrl}}/api/tasks/{{taskId}}
+Content-Type: {{contentType}}
+
+{
+  "status": "completed"
+}
+
+
+### ─── DELETE TASK ─────────────────────────────────────────────────────────────
+
+### Delete task by ID
+DELETE {{baseUrl}}/api/tasks/{{taskId}}
+
+###
+
+### Delete — invalid ObjectId (expect 400)
+DELETE {{baseUrl}}/api/tasks/not-a-valid-id
+
+###
+
+### Delete — already deleted / not found (expect 404)
+DELETE {{baseUrl}}/api/tasks/000000000000000000000000
